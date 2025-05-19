@@ -6,6 +6,7 @@ import models.User;
 import services.SurveyService;
 import models.Survey;
 
+
 // Принцип единственной ответственности и Паттерн Фасад
 
 
@@ -25,10 +26,10 @@ public class MainFrame extends JFrame {
         userController.registerFromConsole();
 
         // Добавление тестовой анкеты
-        Survey testSurvey = new Survey(1, "Тестовая анкета", "Описание тестовой анкеты");
-        surveyController.createSurvey(testSurvey);
 
-        RegisterPanel registerPanel = new RegisterPanel(this, surveyController);
+
+
+        RegisterPanel registerPanel = new RegisterPanel(this, surveyController, userController);
         setContentPane(registerPanel);
         revalidate();
         setVisible(true);
@@ -38,8 +39,7 @@ public class MainFrame extends JFrame {
         LoginPanel loginPanel = new LoginPanel(this, userController, surveyController);
         add(loginPanel);
 
-        SurveyPanel surveyPanel = new SurveyPanel(this, new User(0, "User", "User_u@internet.ru", "D8_t5-K122"), surveyController, testSurvey);
-        add(surveyPanel);
+
 
         setVisible(true);
     }

@@ -10,12 +10,28 @@ public class Survey extends  BaseEntity{
     private String title;
     private String description;
     private List<Question> questions; // Список вопросов
+    private String questionFilePath;
 
-    public Survey(int id, String title, String description) {
+    public Survey(int id, String title, String description, String questionFilePath) {
         this.id = id;
         this.title = title;
         this.description = description;
         this.questions = new ArrayList<>(); // Инициализация списка
+        this.questionFilePath = questionFilePath;
+    }
+
+    public static Survey createWithResources(String title, String resourcePath){
+        Survey survey = new Survey(0, title, "", resourcePath);
+        survey.loadQuestionsFromResource();
+        return survey;
+    }
+
+    private void loadQuestionsFromResource(){
+        // Загрузка вопросов из ресурсов
+
+    }
+    public String getQuestionFilePath() {
+        return questionFilePath;
     }
 
     public void addQuestion(Question question) {

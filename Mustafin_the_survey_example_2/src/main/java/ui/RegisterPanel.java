@@ -3,12 +3,19 @@ package ui;
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.List;
+import java.util.Map;
+import javax.swing.JOptionPane;
 import controllers.UserController;
 import controllers.SurveyController;
 import interface_for_panel.IUserPanel;
+import models.Question;
 import models.Survey;
+import models.SurveyFactory;
 import models.User;
+import services.QuestionLoader;
 
 // Принцип инверсии зависимостей
 
@@ -18,10 +25,12 @@ public class RegisterPanel extends JPanel implements IUserPanel {
     private JPasswordField passwordField;
     private UserController userController;
     private SurveyController surveyController;
+    private User currentUser;
 
-    public RegisterPanel(MainFrame mainFrame, SurveyController surveyController) {
-        this.userController = new UserController();
+    public RegisterPanel(MainFrame mainFrame, SurveyController surveyController, UserController userController) {
+        this.userController = userController;
         this.surveyController = surveyController;
+
 
         // Создаем текстовое поле для ввода имени пользователя
         add(new JLabel("Username:"));
@@ -90,22 +99,32 @@ public class RegisterPanel extends JPanel implements IUserPanel {
     }
 
     private void displaySurvey(String surveyTitle, MainFrame mainFrame){
-        Survey selectedSurvey = new Survey(0, surveyTitle, "Описание для " + surveyTitle); // Создаем анкету
 
-        String questionFilePath = "";
-        switch (surveyTitle){
-            case "IT-технологии":
-                questionFilePath = "/home/studentlin/IDEAProjects/Mustafin_the_survey_example2/questionsdevexample.txt";
-                break;
-            case "Победа в Великой Отечественной Войне":
-                questionFilePath = "/home/studentlin/IDEAProjects/Mustafin_the_survey_example2/questionsdevexample3.txt";
-                break;
-            case "IT-технологии в современном мире":
-                questionFilePath = "/home/studentlin/IDEAProjects/Mustafin_the_survey_example2/questionsdevexample2.txt";
-                break;
-        }
-        mainFrame.setContentPane(new SurveyPanel(mainFrame, userController.getCurrentUser(), surveyController, selectedSurvey));
-        mainFrame.revalidate();
+       try {
+           Survey survey = SurveyFactory.createSurvey(surveyTitle);
+           List<Question> questions = new QuestionLoader().loadQuestions(survey);
+           questions.forEach(survey::addQuestion);
+
+           surveyController.createSurvey(survey);
+           mainFrame.setContentPane(new SurveyPanel(mainFrame, userController.getCurrentUser(), surveyController, survey));
+           mainFrame.revalidate();
+       } catch (IOException e){
+           JOptionPane.showMessageDialog(this, "Ошибка загрузки вопросов: " + e.getMessage(), "Ошибка", JOptionPane.ERROR_MESSAGE);
+       }
+
+        //String questionFilePath = "";
+        //switch (surveyTitle){
+            //case "IT-технологии":
+              //  questionFilePath = "/home/studentlin/IDEAProjects/Mustafin_the_survey_example2/questionsdevexample.txt";
+              //  break;
+           // case "Победа в Великой Отечественной Войне":
+              //  questionFilePath = "/home/studentlin/IDEAProjects/Mustafin_the_survey_example2/questionsdevexample3.txt";
+            //    break;
+           // case "IT-технологии в современном мире":
+             //   questionFilePath = "/home/studentlin/IDEAProjects/Mustafin_the_survey_example2/questionsdevexample2.txt";
+              //  break;
+       // }
+
     }
 
     @Override
