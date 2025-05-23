@@ -12,15 +12,16 @@ import java.util.List;
 public class QuestionLoader {
     public List<Question> loadQuestions(Survey survey) throws IOException {
         List<Question> questions = new ArrayList<>();
-        try (InputStream is = getClass().getResourceAsStream(survey.getQuestionFilePath());
-             BufferedReader reader = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8))){
-
+        String path = survey.getQuestionFilePath();
+        try (InputStream is = getClass().getResourceAsStream(survey.getQuestionFilePath())) {
+            if (is == null) {
+                throw new IOException("Файл не найден: " + path);
+            }
+            BufferedReader reader = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8));
             String line;
             while ((line = reader.readLine()) != null){
                 questions.add(parseQuestion(line, survey.getId()));
             }
-        } catch (NullPointerException e){
-            throw new IOException("File not found" + survey.getQuestionFilePath());
         }
         return questions;
     }
@@ -33,10 +34,11 @@ public class QuestionLoader {
 
 
         String typeStr = parts[0].trim();
+        String text = parts[1].trim();
+        List<String> options = new ArrayList<>();
         try{
             QuestionType type = QuestionType.valueOf(typeStr);
-            String text = parts[1].trim();
-            List<String> options = new ArrayList<>();
+
 
             if (parts.length > 2){
                 for (int i = 2; i < parts.length; i++) {

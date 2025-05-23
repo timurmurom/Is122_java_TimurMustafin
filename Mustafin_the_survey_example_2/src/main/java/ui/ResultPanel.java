@@ -19,6 +19,23 @@ public class ResultPanel extends JFrame {
         setTitle("Анкетирование");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(800, 600);
+        this.collectedAnswers = collectedAnswers;
+
+        JTextArea resultsArea = new JTextArea();
+        StringBuilder results = new StringBuilder("Ваши ответы: \n");
+        for (Answer answer: collectedAnswers){
+            results.append(String.format("Вопрос ID: %d, Ответ: %s\n", answer.getQuestionId(),answer.getAnswerText()));
+        }
+
+        resultsArea.setText(results.toString());
+        resultsArea.setEditable(false);
+        add(new JScrollPane(resultsArea));
+
+        JButton exportCsvButton = new JButton("Экспорт в CSV");
+//
+        add(exportCsvButton);
+        setVisible(true);
+
 
         UserController userController = new UserController();
 

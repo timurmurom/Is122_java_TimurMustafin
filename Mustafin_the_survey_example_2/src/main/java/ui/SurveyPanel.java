@@ -58,15 +58,16 @@ public class SurveyPanel extends JPanel {
             }
         });
         add(nextButton, BorderLayout.SOUTH);
-        // Добавляем кнопку завершения анкетирования
-        //JButton finishButton = new JButton("Завершить анкету");
-        //finishButton.addActionListener(new ActionListener() {
-           // @Override
-           // public void actionPerformed(ActionEvent e) {
-                //endSurvey();
-            //}
-       // });
-       // add(finishButton, BorderLayout.EAST);
+        // Кнопка "Завершить анкету"
+        JButton finishButton = new JButton("Завершить");
+        finishButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                endSurvey();
+            }
+        });
+        add(finishButton, BorderLayout.SOUTH);
+
     }
 
 
