@@ -3,6 +3,7 @@ import javax.swing.*;
 import controllers.UserController;
 import controllers.SurveyController;
 import models.User;
+import services.SurveyInitializer;
 import services.SurveyService;
 import models.Survey;
 
@@ -22,6 +23,7 @@ public class MainFrame extends JFrame {
 
         this.userController = new UserController(); // Инициализируем здесь
         this.surveyController = new SurveyController(new SurveyService());
+        new SurveyInitializer(surveyController).initializeSurveys();
 
         userController.registerFromConsole();
 

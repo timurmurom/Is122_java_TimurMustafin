@@ -20,6 +20,10 @@ public class Survey extends  BaseEntity{
         this.questionFilePath = questionFilePath;
     }
 
+    public void setId(int id) {
+        this.id = id;
+    }
+
     public static Survey createWithResources(String title, String resourcePath){
         Survey survey = new Survey(0, title, "", resourcePath);
         survey.loadQuestionsFromResource();
@@ -53,6 +57,8 @@ public class Survey extends  BaseEntity{
     public String getTitle() {
         return title;
     }
+
+
 
 
     // Геттеры и сеттеры

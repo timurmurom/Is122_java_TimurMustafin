@@ -17,6 +17,8 @@ public class UserController {
 
     public void register(String username, String email, String password) {
         try {
+            if (userService.emailExists(email)){
+                throw new IllegalArgumentException("Email уже зарегистрирован");}
             userService.registerUser(username, email, password);
             System.out.println("Регистрация прошла успешно!");
             // Важно: Здесь нужно сохранить данные пользователя в переменные для доступа из UI

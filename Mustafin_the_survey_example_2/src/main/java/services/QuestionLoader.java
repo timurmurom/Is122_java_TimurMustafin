@@ -26,25 +26,27 @@ public class QuestionLoader {
         return questions;
     }
     private Question parseQuestion(String line, int surveyId) throws IOException{
-        String [] parts = line.split(";");
+        line = line.trim();
+        if(line.trim().isEmpty()) return null;
 
+
+        String [] parts = line.split(";");
         if (parts.length < 2){
             throw new IOException("Invalid question format" + line);
         }
 
-
         String typeStr = parts[0].trim();
         String text = parts[1].trim();
         List<String> options = new ArrayList<>();
+
+        if (parts.length > 2){
+            for (int i = 2; i < parts.length; i++) {
+                options.add(parts[i].trim());
+            }
+        }
+
         try{
             QuestionType type = QuestionType.valueOf(typeStr);
-
-
-            if (parts.length > 2){
-                for (int i = 2; i < parts.length; i++) {
-                    options.add(parts[i].trim());
-                }
-            }
 
             switch (type) {
                 case CLOSED:

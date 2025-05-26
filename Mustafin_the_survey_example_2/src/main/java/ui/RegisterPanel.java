@@ -83,7 +83,9 @@ public class RegisterPanel extends JPanel implements IUserPanel {
     }
 
     private void showSurveySelectionDialog(MainFrame mainFrame){
-        String [] surveyTitles = {"IT-технологии", "Победа в Великой Отечественной Войне", "IT-технологии в современном мире"};
+
+        String[] surveyTitles = SurveyFactory.getSurveyMap().keySet().toArray(new String[0]);
+        //String [] surveyTitles = {"IT-технологии", "Победа в Великой Отечественной Войне", "IT-технологии в современном мире"};
         JComboBox<String> surveyDropdown = new JComboBox<>(surveyTitles);
         JLabel descriptionLabel = new JLabel("Выберите анкету:");
 
@@ -102,11 +104,11 @@ public class RegisterPanel extends JPanel implements IUserPanel {
 
        try {
            Survey survey = SurveyFactory.createSurvey(surveyTitle);
-           List<Question> questions = new QuestionLoader().loadQuestions(survey);
-           questions.forEach(survey::addQuestion);
-
-           surveyController.createSurvey(survey);
-           mainFrame.setContentPane(new SurveyPanel(mainFrame, userController.getCurrentUser(), surveyController, survey));
+           QuestionLoader loader = new QuestionLoader();
+           List<Question> questions = loader.loadQuestions(survey);
+           SurveyPanel surveyPanel = new SurveyPanel(mainFrame, currentUser, surveyController, survey);
+           surveyPanel.setQuestions(questions);
+           mainFrame.setContentPane(surveyPanel);
            mainFrame.revalidate();
        } catch (IOException e){
            JOptionPane.showMessageDialog(this, "Ошибка загрузки вопросов: " + e.getMessage(), "Ошибка", JOptionPane.ERROR_MESSAGE);

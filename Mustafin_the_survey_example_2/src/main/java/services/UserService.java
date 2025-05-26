@@ -9,6 +9,11 @@ import java.util.List;
 public class UserService {
     private List<User> users = new ArrayList<>();
 
+    // Методы, которые необходимо добавить
+    public boolean emailExists(String email) {
+        return users.stream().anyMatch(u -> u.getEmail().equalsIgnoreCase(email.trim()));
+    }
+
     public void registerUser(String username, String email, String password) {
         if (emailExists(email)) { // Метод для проверки существования email
             throw new IllegalArgumentException("Email already in use");
@@ -17,16 +22,6 @@ public class UserService {
         String hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt());
         User user = new User(0, username, email, hashedPassword);
         users.add(user);
-    }
-
-    // Методы, которые необходимо добавить
-    private boolean emailExists(String email) {
-        for (User user : users) {
-            if (user.getEmail().equals(email)) {
-                return true;
-            }
-        }
-        return false;
     }
 
     public User loginUser(String username, String password) {

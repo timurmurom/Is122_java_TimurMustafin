@@ -28,6 +28,8 @@ public class SurveyPanel extends JPanel {
         this.currentUser = user;
         this.surveyController = surveyController;
         this.survey = survey;
+        this.questionFilePath = survey.getQuestionFilePath();
+        this.questions = new ArrayList<>();
 
         try {
             QuestionLoader loader = new QuestionLoader();
@@ -35,15 +37,15 @@ public class SurveyPanel extends JPanel {
             displayQuestion(0);
         }catch (IOException e){
             JOptionPane.showMessageDialog(this, "Ошибка загрузки вопросов: " + e.getMessage(), "Ошибка", JOptionPane.ERROR_MESSAGE);
-            questions = new ArrayList<>();
+            this.questions = new ArrayList<>();
         }
+
+        loadAndInitializeQuestions(questionFilePath);
 
         setLayout(new BorderLayout());
         JLabel surveyTitle = new JLabel("Анкета" + survey.getTitle());
         add(surveyTitle,BorderLayout.NORTH);
 
-        questions = new ArrayList<>();
-        loadAndInitializeQuestions(questionFilePath);
 
 
         this.setLayout(new BorderLayout());
@@ -70,6 +72,11 @@ public class SurveyPanel extends JPanel {
 
     }
 
+    public void setQuestions(List<Question> questions) {
+        this.questions = questions;
+        currentQuestionIndex = 0;
+        displayQuestion(0);
+    }
 
     private void displayQuestion(int index) {
         removeAll();
@@ -227,28 +234,6 @@ public class SurveyPanel extends JPanel {
         }
     }
 
-    //private void writeQuestionsToFile(String filename) {
-       // try (BufferedWriter writer = new BufferedWriter(new FileWriter(filename))) {
-          //  for (Question question : questions) {
-              //  StringBuilder line = new StringBuilder();
-
-                // Записываем тип вопроса, текст и варианты ответов
-              //  line.append(question.getQuestionType().toString()).append(";"); // Тип вопроса
-              //  line.append(question.getText()).append(";");
-
-              //  if (question instanceof ClosedQuestion || question instanceof PartiallyOpenQuestion) {
-              //      for (String option : question.getOptions()) {
-              //          line.append(option).append(";"); // Варианты ответов
-               //     }
-              //  }
-
-             //   writer.write(line.toString());
-             //   writer.newLine(); // Переход на новую строку
-           // }
-      //  } catch (IOException e) {
-      //      e.printStackTrace();
-      //  }
-   // }
 
     private void endSurvey() {
         JLabel endLabel = new JLabel("Спасибо за участие!");

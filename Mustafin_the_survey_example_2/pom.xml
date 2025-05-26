@@ -8,6 +8,8 @@
     <artifactId>Mustafin_the_survey_example_2</artifactId>
     <version>1.0-SNAPSHOT</version>
 
+
+
     <dependencies>
         <dependency>
             <groupId>com.itextpdf</groupId>
@@ -19,9 +21,39 @@
             <artifactId>itextlayout</artifactId>
             <version>7.2.3</version>
         </dependency>
+        <dependency>
+            <groupId>com.itextpdf</groupId>
+            <artifactId>commons</artifactId>
+            <version>7.2.3</version>
+        </dependency>
+
+
+        <dependency>
+            <groupId>org.mindrot</groupId>
+            <artifactId>jbcrypt</artifactId>
+            <version>0.4</version>
+        </dependency>
     </dependencies>
 
 
+    <build>
+        <resources>
+            <resource><directory>src/main/resources</directory></resource>
+        </resources>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.11.0</version>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>3.3.1</version>
+            </plugin>
+        </plugins>
+    </build>
     <properties>
         <maven.compiler.source>22</maven.compiler.source>
         <maven.compiler.target>22</maven.compiler.target>
