@@ -25,25 +25,29 @@ public class MainFrame extends JFrame {
         this.surveyController = new SurveyController(new SurveyService());
         new SurveyInitializer(surveyController).initializeSurveys();
 
-        userController.registerFromConsole();
-
-        // Добавление тестовой анкеты
-
 
 
         RegisterPanel registerPanel = new RegisterPanel(this, surveyController, userController);
         setContentPane(registerPanel);
         revalidate();
         setVisible(true);
+        setVisible(true);
+    }
 
-
-        // После завершения регистрации показываем панель входа
+    public void showMainMenu(){
+        getContentPane().removeAll();
         LoginPanel loginPanel = new LoginPanel(this, userController, surveyController);
         add(loginPanel);
+        revalidate();
+        repaint();
+    }
 
+    public SurveyController getSurveyController() {
+        return surveyController;
+    }
 
-
-        setVisible(true);
+    public UserController getUserController() {
+        return userController;
     }
 
     public void startSurvey(){

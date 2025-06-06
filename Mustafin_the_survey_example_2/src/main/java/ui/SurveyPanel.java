@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.io.*; // Включает необходимый класс для файлового ввода/вывода
 import models.*;
+import ui.*;
 import controllers.SurveyController;
 import services.AnswerService;
 import services.QuestionLoader;
@@ -22,25 +23,34 @@ public class SurveyPanel extends JPanel {
     private List<Answer> collectedAnswers = new ArrayList<>();
     private List<Question> questions;
     private List<String> answers;
+    private List<Component> currentQuestionOptions;
     private String questionFilePath;
+    private MainFrame mainFrame;
+    private JButton nextOrFinishButton;
+    private JPanel currentQuestionPanel;
 
     public SurveyPanel(MainFrame mainFrame, User user, SurveyController surveyController, Survey survey) {
+        this.mainFrame = mainFrame;
         this.currentUser = user;
         this.surveyController = surveyController;
         this.survey = survey;
         this.questionFilePath = survey.getQuestionFilePath();
-        this.questions = new ArrayList<>();
+        this.questions = surveyController.loadSurveyQuestion(survey);
+
+        if (questions.isEmpty()){
+            JOptionPane.showMessageDialog(this, "Анкета не содержит вопросов", "Ошибка", JOptionPane.ERROR_MESSAGE);
+        }
 
         try {
             QuestionLoader loader = new QuestionLoader();
             this.questions = loader.loadQuestions(survey);
-            displayQuestion(0);
+            currentQuestionIndex = 0;
+            displayQuestion(currentQuestionIndex);
         }catch (IOException e){
             JOptionPane.showMessageDialog(this, "Ошибка загрузки вопросов: " + e.getMessage(), "Ошибка", JOptionPane.ERROR_MESSAGE);
             this.questions = new ArrayList<>();
         }
 
-        loadAndInitializeQuestions(questionFilePath);
 
         setLayout(new BorderLayout());
         JLabel surveyTitle = new JLabel("Анкета" + survey.getTitle());
@@ -52,23 +62,6 @@ public class SurveyPanel extends JPanel {
 
         answers = new ArrayList<>();
 
-        JButton nextButton = new JButton("Далее");
-        nextButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                handleNextQuestion();
-            }
-        });
-        add(nextButton, BorderLayout.SOUTH);
-        // Кнопка "Завершить анкету"
-        JButton finishButton = new JButton("Завершить");
-        finishButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                endSurvey();
-            }
-        });
-        add(finishButton, BorderLayout.SOUTH);
 
     }
 
@@ -80,45 +73,83 @@ public class SurveyPanel extends JPanel {
 
     private void displayQuestion(int index) {
         removeAll();
+        if (currentQuestionPanel != null) {
+            remove(currentQuestionPanel);
+        }
 
 
         if (index < questions.size()) {
-
+            currentQuestionPanel = new JPanel();
+            currentQuestionPanel.setLayout(new BorderLayout());
 
             Question currentQuestion = questions.get(index);
-            JLabel questionLabel = new JLabel(currentQuestion.getText());
-            add(questionLabel, BorderLayout.NORTH);
+            JLabel questionLabel = new JLabel("<html><div style='width:300px;'>" + currentQuestion.getText() + "</div></html>");
+            currentQuestionPanel.add(questionLabel, BorderLayout.NORTH);
 
-            // Создаем панель для вариантов ответа
             JPanel optionsPanel = new JPanel();
             optionsPanel.setLayout(new BoxLayout(optionsPanel, BoxLayout.Y_AXIS));
+            currentQuestionOptions = new ArrayList<>(); // Сбрасываем варианты ответов
 
-
+            // Настройка вариантов ответа
             if (currentQuestion instanceof ClosedQuestion) {
                 setupClosedQuestion((ClosedQuestion) currentQuestion, optionsPanel);
             } else if (currentQuestion instanceof PartiallyOpenQuestion) {
                 setupPartiallyOpenQuestion((PartiallyOpenQuestion) currentQuestion, optionsPanel);
-            } else if (currentQuestion instanceof OpenEndedQuestion) {
-                setupOpenEndedQuestion(optionsPanel);
-                revalidate(); // Обновление панели
-                repaint(); // Перерисовка интерфейса
+            } else {
+                setupOpenEndedQuestion(currentQuestion, optionsPanel);
             }
 
-            add(optionsPanel, BorderLayout.CENTER);
+            currentQuestionPanel.add(optionsPanel, BorderLayout.CENTER);
 
-            JButton nextButton = new JButton("Далее");
-            nextButton.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    currentQuestionIndex++;
-                    displayQuestion(currentQuestionIndex);
-                }
-            });
-            add(nextButton, BorderLayout.SOUTH);
+            // Кнопка навигации
+            JButton navigationButton = new JButton(index == questions.size() - 1 ? "Завершить анкету" : "Следующий вопрос");
+            navigationButton.addActionListener(e -> handleNavigation(index));
+
+            JPanel buttonPanel = new JPanel();
+            buttonPanel.add(navigationButton);
+            currentQuestionPanel.add(buttonPanel, BorderLayout.SOUTH);
+
+            add(currentQuestionPanel, BorderLayout.CENTER);
             revalidate();
             repaint();
         } else {
             endSurvey();
+        }
+    }
+
+    private void handleNavigation(int currentIndex) {
+        // Сохраняем ответ для текущего вопроса
+        saveCurrentAnswer(currentIndex);
+
+        if (currentIndex < questions.size() - 1) {
+            displayQuestion(currentIndex + 1);
+        } else {
+            endSurvey();
+        }
+    }
+
+    private void saveCurrentAnswer(int questionIndex) {
+        Question question = questions.get(questionIndex);
+        String answerText = "";
+
+        if (question instanceof ClosedQuestion || question instanceof PartiallyOpenQuestion) {
+            for (Component comp : currentQuestionOptions) {
+                if (comp instanceof JRadioButton && ((JRadioButton) comp).isSelected()) {
+                    answerText = ((JRadioButton) comp).getText();
+                    break;
+                }
+            }
+        } else {
+            for (Component comp : currentQuestionOptions) {
+                if (comp instanceof JTextField) {
+                    answerText = ((JTextField) comp).getText();
+                    break;
+                }
+            }
+        }
+
+        if (!answerText.isEmpty()) {
+            collectedAnswers.add(new Answer(0, question.getId(), currentUser.getId(), answerText));
         }
     }
 
@@ -154,10 +185,10 @@ public class SurveyPanel extends JPanel {
         optionsPanel.add(otherField); // Добавляем поле для других вариантов
     }
 
-    private void setupOpenEndedQuestion(JPanel optionsPanel) {
+    private void setupOpenEndedQuestion(Question question, JPanel optionsPanel) {
         JTextField answerField = new JTextField(20);
         answerField.addActionListener(e -> {
-            collectedAnswers.add(new Answer(0, -1, currentUser.getId(), answerField.getText())); // -1, т.к. нет ID вопроса
+            collectedAnswers.add(new Answer(0, question.getId(), currentUser.getId(), answerField.getText())); // -1, т.к. нет ID вопроса
         });
         optionsPanel.add(answerField);
     }
@@ -240,30 +271,11 @@ public class SurveyPanel extends JPanel {
         add(endLabel, BorderLayout.CENTER);
         saveAnswers(collectedAnswers);
 
-        // Здесь будет возможность показать результаты и отправить их на экспорт
-        //ResultPanel resultPanel = new ResultPanel(collectedAnswers);
-       // JFrame resultsFrame = new JFrame("Результаты анкеты");
-      //  resultsFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-      //  resultsFrame.setSize(600, 400);
-      //  resultsFrame.getContentPane().add(resultPanel);
-      //  resultsFrame.setVisible(true);
+        ResultPanel resultPanel = new ResultPanel(mainFrame, collectedAnswers);
 
-        // Добавляем кнопку "Вернуться в главное меню"
-      //  JButton backButton = new JButton("Вернуться в главное меню");
-     //   backButton.addActionListener(new ActionListener() {
-     //       @Override
-     //       public void actionPerformed(ActionEvent e) {
-     //           ((JFrame) SwingUtilities.getWindowAncestor(SurveyPanel.this)).dispose(); // Закрываем текущее окно
-      //          MainFrame mainFrame = new MainFrame(); // Сначала создаём новое главное окно
-      //          mainFrame.setVisible(true); // Показываем главное окно
-       //     }
-       // });
+        mainFrame.setContentPane(resultPanel);
+        mainFrame.revalidate();
+        mainFrame.repaint();
 
-       // JPanel buttonPanel = new JPanel();
-       // buttonPanel.add(backButton);
-      //  add(buttonPanel, BorderLayout.SOUTH); // Добавляем кнопку на панель
-
-      //  revalidate();
-      //  repaint();
     }
 }

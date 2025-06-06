@@ -29,7 +29,5 @@ public class User extends  BaseEntity {
         return username;
     }
 
-
-
     // Конструктор, геттеры и сеттеры
 }

@@ -66,23 +66,39 @@ public class RegisterPanel extends JPanel implements IUserPanel {
                     //Устанавливаем значения логина и пароля в соответствующие поля UI
                     JOptionPane.showMessageDialog(RegisterPanel.this, "Регистрация прошла успешно!");
 
+                    User registeredUser = userController.getCurrentUser();
+
                     //Переходим к опросу
                     Survey survey = surveyController.getSurveys().get(0);
                     mainFrame.setContentPane(new SurveyPanel(mainFrame, new User(0,username,email, password), surveyController, survey));
                     mainFrame.revalidate();
                     mainFrame.repaint();
-                 showSurveySelectionDialog(mainFrame);// Выбор анкеты после успешной регистрации
+                 showSurveySelectionDialog(mainFrame, registeredUser);// Выбор анкеты после успешной регистрации
                 } catch (IllegalArgumentException ex) {
                     JOptionPane.showMessageDialog(RegisterPanel.this, "Ошибка регистрации: " + ex.getMessage(), "Ошибка", JOptionPane.ERROR_MESSAGE);
                 } catch (Exception ex) {
                     JOptionPane.showMessageDialog(RegisterPanel.this, "Произошла ошибка: " + ex.getMessage(), "Ошибка", JOptionPane.ERROR_MESSAGE);
                 }
-               showSurveySelectionDialog(mainFrame);
+            }
+        });
+
+        // Кнопка для администратора
+        JButton adminButton = new JButton("Я администратор");
+        add(adminButton);
+        adminButton.addActionListener(e -> {
+            String password = JOptionPane.showInputDialog(this, "Введите пароль администратора:", "Пароль администратора", JOptionPane.QUESTION_MESSAGE);
+            if ("admin123".equals(password)) {
+                // Открываем AdminPanel
+                AdminPanel adminPanel = new AdminPanel(userController);
+                mainFrame.setContentPane(adminPanel);
+                mainFrame.revalidate();
+            } else {
+                JOptionPane.showMessageDialog(this, "Неверный пароль администратора", "Ошибка", JOptionPane.ERROR_MESSAGE);
             }
         });
     }
 
-    private void showSurveySelectionDialog(MainFrame mainFrame){
+    private void showSurveySelectionDialog(MainFrame mainFrame, User user){
 
         String[] surveyTitles = SurveyFactory.getSurveyMap().keySet().toArray(new String[0]);
         //String [] surveyTitles = {"IT-технологии", "Победа в Великой Отечественной Войне", "IT-технологии в современном мире"};
@@ -96,36 +112,23 @@ public class RegisterPanel extends JPanel implements IUserPanel {
         int result = JOptionPane.showConfirmDialog(mainFrame, panel, "Выбор анкеты", JOptionPane.OK_CANCEL_OPTION);
         if(result == JOptionPane.OK_OPTION){
             String selectedSurvey = (String) surveyDropdown.getSelectedItem();
-            displaySurvey(selectedSurvey, mainFrame);
+            displaySurvey(selectedSurvey, mainFrame, user);
         }
     }
 
-    private void displaySurvey(String surveyTitle, MainFrame mainFrame){
+    private void displaySurvey(String surveyTitle, MainFrame mainFrame, User user){
 
        try {
            Survey survey = SurveyFactory.createSurvey(surveyTitle);
            QuestionLoader loader = new QuestionLoader();
            List<Question> questions = loader.loadQuestions(survey);
-           SurveyPanel surveyPanel = new SurveyPanel(mainFrame, currentUser, surveyController, survey);
+           SurveyPanel surveyPanel = new SurveyPanel(mainFrame, user, surveyController, survey);
            surveyPanel.setQuestions(questions);
            mainFrame.setContentPane(surveyPanel);
            mainFrame.revalidate();
        } catch (IOException e){
            JOptionPane.showMessageDialog(this, "Ошибка загрузки вопросов: " + e.getMessage(), "Ошибка", JOptionPane.ERROR_MESSAGE);
        }
-
-        //String questionFilePath = "";
-        //switch (surveyTitle){
-            //case "IT-технологии":
-              //  questionFilePath = "/home/studentlin/IDEAProjects/Mustafin_the_survey_example2/questionsdevexample.txt";
-              //  break;
-           // case "Победа в Великой Отечественной Войне":
-              //  questionFilePath = "/home/studentlin/IDEAProjects/Mustafin_the_survey_example2/questionsdevexample3.txt";
-            //    break;
-           // case "IT-технологии в современном мире":
-             //   questionFilePath = "/home/studentlin/IDEAProjects/Mustafin_the_survey_example2/questionsdevexample2.txt";
-              //  break;
-       // }
 
     }
 

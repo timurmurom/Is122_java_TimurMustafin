@@ -11,12 +11,12 @@ public class DatabaseManager {
     private Connection connection;
 
     private DatabaseManager() {
-        //try {
+        try {
             // Здесь можно использовать различные драйверы для подключения
-            //connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/yourdb", "user", "password");
-        //} catch (SQLException e) {
-            //e.printStackTrace();
-        //}
+            connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/yourdb", "user", "password");
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
     public static synchronized DatabaseManager getInstance() {

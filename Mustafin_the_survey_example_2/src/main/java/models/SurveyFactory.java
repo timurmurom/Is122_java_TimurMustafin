@@ -11,6 +11,7 @@ public class SurveyFactory {
         SURVEY_MAP.put("IT-технологии", "/questions/question_for_first_questionnaire.txt");
         SURVEY_MAP.put("IT-технологии в современном мире", "/questions/question_for_second_questionnaire.txt");
         SURVEY_MAP.put("Победа в Великой Отечественной Войне", "/questions/question_for_third_questionnaire.txt");
+        SURVEY_MAP.put("Пример анкеты", "/questions/question_for_example_questionnaire.txt");
     }
 
     public static Map <String, String> getSurveyMap(){
