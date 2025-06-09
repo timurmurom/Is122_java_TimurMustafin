@@ -1,5 +1,6 @@
 package models;
 import abstract_models.BaseEntity;
+import org.mindrot.jbcrypt.BCrypt;
 
 // Принцип единственной ответственности
 
@@ -29,5 +30,16 @@ public class User extends  BaseEntity {
         return username;
     }
 
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public void setPassword(String password) {
+        this.password = BCrypt.hashpw(password, BCrypt.gensalt());
+    }
     // Конструктор, геттеры и сеттеры
 }

@@ -59,7 +59,7 @@ public class EditUserDialog extends JDialog {
         }
 
         try {
-            userController.updateUser(user);
+            userController.updateUser(user.getId(), newUsername, newEmail);
             JOptionPane.showMessageDialog(this, "Пользователь обновлен", "Успех", JOptionPane.INFORMATION_MESSAGE);
             dispose();
         } catch (Exception e) {

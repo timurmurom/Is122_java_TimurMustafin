@@ -2,47 +2,78 @@ package services;
 
 import models.User;
 import org.mindrot.jbcrypt.BCrypt;
-
+import java.util.Optional;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
 public class UserService {
     private List<User> users = new ArrayList<>();
-    private String userFilePath = "users.txt"; // Файл будет в корне проекта
+    private final String USERS_FILE = "users.txt";
+
 
     public UserService() {
         loadUsersFromFile();
     }
 
-    private void loadUsersFromFile() {
-        File file = new File(userFilePath);
-        if (!file.exists()) {
-            return;
-        }
+    public User getUserById(int userId) {
+        return users.stream()
+                .filter(u -> u.getId() == userId)
+                .findFirst()
+                .orElse(null);
+    }
 
-        try (BufferedReader reader = new BufferedReader(new FileReader(userFilePath))) {
+    public void updateUser(User updatedUser) {
+        for (int i = 0; i < users.size(); i++) {
+            if (users.get(i).getId() == updatedUser.getId()) {
+                users.set(i, updatedUser);
+                saveUsersToFile(); // сохраняем изменения в файл
+                return;
+            }
+        }
+        throw new IllegalArgumentException("Пользователь с ID " + updatedUser.getId() + " не найден");
+    }
+
+    public void deleteUser(int userId) {
+        if (users.removeIf(user -> user.getId() == userId)) {
+            saveUsersToFile();
+        } else {
+            throw new IllegalArgumentException("Пользователь с ID " + userId + " не найден");
+        }
+    }
+
+    public List<User> getAllUsers() {
+        return new ArrayList<>(users);
+    }
+
+    private void loadUsersFromFile() {
+        try (BufferedReader reader = new BufferedReader(new FileReader(USERS_FILE))) {
             String line;
             while ((line = reader.readLine()) != null) {
-                String[] parts = line.split(";");
-                if (parts.length == 4) {
-                    int id = Integer.parseInt(parts[0]);
-                    String username = parts[1];
-                    String email = parts[2];
-                    String password = parts[3];
-                    users.add(new User(id, username, email, password));
+                String[] data = line.split(";");
+                if (data.length == 4) {
+                    int id = Integer.parseInt(data[0]);
+                    String username = data[1];
+                    String email = data[2];
+                    String passwordHash = data[3]; // Пароль уже хеширован
+
+                    // Прямое добавление пользователя
+                    users.add(new User(id, username, email, passwordHash));
                 }
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            System.out.println("Файл пользователей не найден");
         }
     }
 
     private void saveUsersToFile() {
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(userFilePath))) {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(USERS_FILE))) {
             for (User user : users) {
                 writer.write(String.format("%d;%s;%s;%s\n",
-                        user.getId(), user.getUsername(), user.getEmail(), user.getPassword()));
+                        user.getId(),
+                        user.getUsername(),
+                        user.getEmail(),
+                        user.getPassword()));
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -62,7 +93,7 @@ public class UserService {
         int newId = users.isEmpty() ? 1 : users.get(users.size()-1).getId() + 1;
         User user = new User(newId, username, email, hashedPassword);
         users.add(user);
-        saveUsersToFile();
+        saveUsersToFile(); // Сохраняем изменения
     }
 
     public User loginUser(String username, String password) {
@@ -74,26 +105,4 @@ public class UserService {
         return null;
     }
 
-    public List<User> getAllUsers() {
-        return new ArrayList<>(users);
-    }
-
-    public void updateUser(User updatedUser) {
-        for (int i = 0; i < users.size(); i++) {
-            if (users.get(i).getId() == updatedUser.getId()) {
-                users.set(i, updatedUser);
-                saveUsersToFile();
-                return;
-            }
-        }
-        throw new IllegalArgumentException("Пользователь с ID " + updatedUser.getId() + " не найден");
-    }
-
-    public void deleteUser(int userId) {
-        if (users.removeIf(user -> user.getId() == userId)) {
-            saveUsersToFile();
-        } else {
-            throw new IllegalArgumentException("Пользователь с ID " + userId + " не найден");
-        }
-    }
 }

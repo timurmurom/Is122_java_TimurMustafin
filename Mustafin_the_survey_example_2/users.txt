@@ -1,1 +1,5 @@
 2;Dmitriy;Kruckov_d@internet.ru;$2a$10$uns.1a/F2osKqjAO1VolEuPsZ//FtC4OeOVw11C9f93tSG5MOvkuC
+4;Kirill;Balashov_K@internet.ru;$2a$10$JemGsUwXrkYchJZWGvWF6OvCnkk1Nw7EG0LVdGCBcrOF7WYYMgm36
+6;Danil;Vlasov_d@internet.ru;$2a$10$qoSw2ddyNUY14f6gxf.bgO28KHg6IfoNmK5mMLwajJ0OssLhSoauC
+8;Nikita;Bogatov_n@internet.ru;$2a$10$L9DzCorJD0fCvQf7vYKtOOJ9EwhBJVTw0ahSqJXKu.4mGlvvazj6a
+9;Timur;mustafin_t@internet.ru;$2a$10$ukQA3RH3F7V233kXdYASouuEEs0KkbIL98PV0h28osJLoktuTIV6q

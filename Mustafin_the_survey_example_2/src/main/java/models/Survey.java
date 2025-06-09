@@ -58,7 +58,14 @@ public class Survey extends  BaseEntity{
         return title;
     }
 
-
+    public Question getQuestionById(int questionId) {
+        for (Question question : questions) {
+            if (question.getId() == questionId) {
+                return question;
+            }
+        }
+        return null;
+    }
 
 
     // Геттеры и сеттеры

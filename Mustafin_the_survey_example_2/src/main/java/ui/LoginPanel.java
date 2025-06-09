@@ -67,7 +67,7 @@ public class LoginPanel extends JPanel implements IUserPanel {
 
     private void showSurveySelectionDialog1(MainFrame mainFrame, User user){
 
-        String[] surveyTitles = SurveyFactory.getSurveyMap().keySet().toArray(new String[0]);
+        String[] surveyTitles = SurveyFactory.getSurveyNames().toArray(new String[0]);
         //String [] surveyTitles = {"IT-технологии", "Победа в Великой Отечественной Войне", "IT-технологии в современном мире"};
         JComboBox<String> surveyDropdown = new JComboBox<>(surveyTitles);
         JLabel descriptionLabel = new JLabel("Выберите анкету:");

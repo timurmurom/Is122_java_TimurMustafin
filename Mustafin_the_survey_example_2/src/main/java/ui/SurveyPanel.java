@@ -2,16 +2,14 @@ package ui;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.List;
 import java.io.*; // Включает необходимый класс для файлового ввода/вывода
 import models.*;
-import ui.*;
 import controllers.SurveyController;
-import services.AnswerService;
 import services.QuestionLoader;
+import java.io.IOException;
+import java.util.Date;
 
 
 // Принцип инверсии зависимостей и паттерн итератор
@@ -28,6 +26,7 @@ public class SurveyPanel extends JPanel {
     private MainFrame mainFrame;
     private JButton nextOrFinishButton;
     private JPanel currentQuestionPanel;
+    private final QuestionLoader questionLoader = new QuestionLoader();
 
     public SurveyPanel(MainFrame mainFrame, User user, SurveyController surveyController, Survey survey) {
         this.mainFrame = mainFrame;
@@ -36,6 +35,8 @@ public class SurveyPanel extends JPanel {
         this.survey = survey;
         this.questionFilePath = survey.getQuestionFilePath();
         this.questions = surveyController.loadSurveyQuestion(survey);
+        loadQuestionsForSurvey(survey);
+        displayQuestion(currentQuestionIndex);
 
         if (questions.isEmpty()){
             JOptionPane.showMessageDialog(this, "Анкета не содержит вопросов", "Ошибка", JOptionPane.ERROR_MESSAGE);
@@ -69,6 +70,16 @@ public class SurveyPanel extends JPanel {
         this.questions = questions;
         currentQuestionIndex = 0;
         displayQuestion(0);
+    }
+
+
+    private void loadQuestionsForSurvey(Survey survey) {
+        try {
+            this.questions = questionLoader.loadQuestions(survey);
+        } catch (IOException e) {
+            JOptionPane.showMessageDialog(this, "Ошибка загрузки вопросов: " + e.getMessage());
+            this.questions = new ArrayList<>();
+        }
     }
 
     private void displayQuestion(int index) {
@@ -159,7 +170,7 @@ public class SurveyPanel extends JPanel {
         for (String option : question.getOptions()) {
             JRadioButton radioButton = new JRadioButton(option);
             radioButton.addActionListener(e -> {
-               collectedAnswers.add(new Answer(0, question.getId(), currentUser.getId(), option));
+                collectedAnswers.add(new Answer(0, question.getId(), currentUser.getId(), option));
             });
             optionsPanel.add(radioButton);
             group.add(radioButton); // Группируем радиокнопки
@@ -203,13 +214,6 @@ public class SurveyPanel extends JPanel {
     }
 
 
-    private void saveAnswers(List<Answer> answers) {
-        AnswerService answerService = new AnswerService();
-        for (Answer answer : answers) {
-            answerService.saveAnswer(answer);
-        }
-    }
-
     private void loadAndInitializeQuestions(String filename){
         questions.clear();
         if (questions.isEmpty()){
@@ -219,7 +223,7 @@ public class SurveyPanel extends JPanel {
 
     private void readQuestionsFromFile(String filename) {
         try (InputStream is = getClass().getResourceAsStream(filename);
-        BufferedReader reader = new BufferedReader(new InputStreamReader(is, "UTF-8"))) {
+             BufferedReader reader = new BufferedReader(new InputStreamReader(is, "UTF-8"))) {
             String line;
             while ((line = reader.readLine()) != null) {
                 // Парсим строки для добавления вопросов
@@ -267,15 +271,60 @@ public class SurveyPanel extends JPanel {
 
 
     private void endSurvey() {
-        JLabel endLabel = new JLabel("Спасибо за участие!");
-        add(endLabel, BorderLayout.CENTER);
-        saveAnswers(collectedAnswers);
+        // Сохраняем результаты в файл
+        saveResultsToFile(collectedAnswers);
 
+        // Показываем результаты пользователю
         ResultPanel resultPanel = new ResultPanel(mainFrame, collectedAnswers);
-
         mainFrame.setContentPane(resultPanel);
         mainFrame.revalidate();
         mainFrame.repaint();
+    }
 
+    private void saveResultsToFile(List<Answer> answers) {
+        // Создаем директорию для отчетов, если ее нет
+        File reportsDir = new File("reports");
+        if (!reportsDir.exists()) {
+            reportsDir.mkdirs();
+        }
+
+        // Формируем имя файла на основе пользователя и анкеты
+        String fileName = String.format("%s_%s_%d.txt",
+                currentUser.getUsername(),
+                survey.getTitle(),
+                System.currentTimeMillis());
+
+        File reportFile = new File(reportsDir, fileName);
+
+        try (PrintWriter writer = new PrintWriter(reportFile, "UTF-8")) {
+            // Заголовок отчета
+            writer.println("Отчёт о прохождении анкеты");
+            writer.println("Анкета: " + survey.getTitle());
+            writer.println("Пользователь: " + currentUser.getUsername());
+            writer.println("Дата: " + new Date());
+            writer.println("----------------------------------");
+
+            // Собираем вопросы и ответы
+            int questionNumber = 1;
+            for (Answer answer : answers) {
+                // Находим вопрос по ID
+                for (Question question : survey.getQuestions()) {
+                    if (question.getId() == answer.getQuestionId()) {
+                        writer.println("Вопрос " + questionNumber + ": " + question.getText());
+                        writer.println("Ответ: " + answer.getAnswerText());
+                        writer.println("----------------------------------");
+                        questionNumber++;
+                        break;
+                    }
+                }
+            }
+
+            writer.println("Опрос завершен. Спасибо за участие!");
+        } catch (IOException e) {
+            JOptionPane.showMessageDialog(this,
+                    "Ошибка сохранения отчета: " + e.getMessage(),
+                    "Ошибка",
+                    JOptionPane.ERROR_MESSAGE);
+        }
     }
 }

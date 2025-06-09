@@ -2,7 +2,6 @@ package controllers;
 
 import services.UserService;
 import models.User;
-
 import java.util.List;
 
 public class UserController {
@@ -23,8 +22,15 @@ public class UserController {
         return currentUser;
     }
 
-    public void updateUser(User user) {
-        userService.updateUser(user);
+    public void updateUser(int userId, String newUsername, String newEmail) {
+        // Получаем пользователя по ID
+        User user = userService.getUserById(userId);
+        if (user != null) {
+            user.setUsername(newUsername);
+            user.setEmail(newEmail);
+            // Сохранение в файл теперь делается внутри userService.updateUser
+            userService.updateUser(user);
+        }
     }
 
     public void deleteUser(int userId) {
@@ -37,5 +43,9 @@ public class UserController {
 
     public User getCurrentUser() {
         return currentUser;
+    }
+
+    public User getUserById(int userId) {
+        return userService.getUserById(userId);
     }
 }
